@@ -4,8 +4,8 @@ const { io } = require('socket.io-client');
 const SERVER_TYPE = process.argv[2];
 
 const SERVER_PORT = 8000;
-const NUM_CLIENTS = 10;
-const MESSAGE_COUNT = 1000;
+const NUM_CLIENTS = 50;
+const MESSAGE_COUNT = 100;
 
 console.log(`Starting ${NUM_CLIENTS} WebSocket clients connecting using ${SERVER_TYPE} to port ${SERVER_PORT}...`);
 
@@ -39,7 +39,7 @@ for (let i = 0; i < NUM_CLIENTS; i++) {
         if (totalMessages === NUM_CLIENTS * MESSAGE_COUNT) {
             const elapsedTime = endTime - startTime;
             console.log(`Test completed in ${elapsedTime}ms`);
-            socket.close();
+            process.exit(0);
         }
     });
 }

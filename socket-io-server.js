@@ -2,8 +2,8 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 const PORT = 8000;
-const EXPECTED_CLIENTS = 10;
-const MESSAGE_COUNT = 1000;
+const EXPECTED_CLIENTS = 50;
+const MESSAGE_COUNT = 100;
 
 const httpServer = createServer();
 const io = new Server(httpServer);
@@ -17,6 +17,13 @@ console.log(`Waiting for ${EXPECTED_CLIENTS} clients to connect...`);
 io.on('connection', (socket) => {
     connectedClients++;
     console.log(`Client connected (${connectedClients}/${EXPECTED_CLIENTS})`);
+
+    socket.on('disconnect', () => {
+        connectedClients--;
+
+        if (connectedClients === 0) 
+            process.exit(0);
+    });
 
     if (connectedClients === EXPECTED_CLIENTS) {
         console.log('All clients connected. Starting test...');

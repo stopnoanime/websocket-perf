@@ -3,12 +3,14 @@ import websockets
 import sys
 
 PORT = 8000
-EXPECTED_CLIENTS = 10
-MESSAGE_COUNT =  1000
+EXPECTED_CLIENTS = 50
+MESSAGE_COUNT =  100
 
 connected_clients = set()
+main_future = None
 
 async def handler(websocket):
+    global main_future
     connected_clients.add(websocket)
     print(f"Client connected ({len(connected_clients)}/{EXPECTED_CLIENTS})")
 
@@ -17,8 +19,9 @@ async def handler(websocket):
             print("All clients connected. Starting test...")
             start_time = asyncio.get_event_loop().time()
             
-            websockets.broadcast(connected_clients, "test-payload")
-
+            for i in range(MESSAGE_COUNT):
+                websockets.broadcast(connected_clients, "test-payload")
+            
             end_time = asyncio.get_event_loop().time()
             print(f"Test completed in {(end_time - start_time)*1000:.2f}ms")
             print(f"Sent {MESSAGE_COUNT} messages to {EXPECTED_CLIENTS} clients")
@@ -27,12 +30,19 @@ async def handler(websocket):
 
     finally:
         connected_clients.remove(websocket)
+        
+        if len(connected_clients) == 0:
+            main_future.set_result(None)
 
 async def main():
+    global main_future
+
     print(f"Websockets server starting on port {PORT}")
     print(f"Waiting for {EXPECTED_CLIENTS} clients to connect...")
     
+    main_future = asyncio.Future()
+    
     async with websockets.serve(handler, "localhost", PORT):
-        await asyncio.Future()
+        await main_future
 
 asyncio.run(main())
